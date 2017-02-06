@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+	<meta charset="UTF-8" />
+	<title>Document</title>
+    <link rel="stylesheet" href="{% static 'css/index-css.css' %}">
+    <script src = "{% static 'js/jquery-3.1.0.min.js' %}"></script>
+    <script src = "{% static 'js/move.js' %}"></script>
+	<style type="text/css">
+
+	</style>
+</head>
+<body>
+    <div class = 'img-center'>
+        <img src="{% static 'img/1.jpg' %}" alt="">
+    </div>
+	<ul id="wrap">
+
+        <li><img src="" alt=""></li>
+		<li><img src="/media/image/2017/01/mysql.jpg" alt="" /></li>
+        <li><img src="{% static 'img/3.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/4.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/5.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/6.jpg' %}" alt="" /></li>
+        <li><img src="{% static 'img/7.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/8.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/9.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/10.jpg' %}" alt="" /></li>
+        <li><img src="{% static 'img/11.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/12.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/13.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/14.jpg' %}" alt="" /></li>
+        <li><img src="{% static 'img/15.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/15.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/14.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/13.jpg' %}" alt="" /></li>
+        <li><img src="{% static 'img/12.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/11.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/1.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/4.jpg' %}" alt="" /></li>
+        <li><img src="{% static 'img/1.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/3.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/2.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/5.jpg' %}" alt="" /></li>
+        <li><img src="{% static 'img/7.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/8.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/4.jpg' %}" alt="" /></li>
+		<li><img src="{% static 'img/3.jpg' %}" alt="" /></li>
+	</ul>
+
+{#    <form method='post' id ='test' style="margin-top: 500px;">#}
+{#     <input type="hidden" value="video34" />#}
+{#    <input type='submit' value='Test button'/>#}
+{##}
+{#    <div id = 'message'>Initial text</div>#}
+{#    </form>#}
+<div id = 'message' style="margin-top: 500px;">Initial text</div>
+</body>
+</html>
+
+<script>
+$(document).ready(function() {
+   $("#message").click(function(){
+
+        $.ajax({
+             cache: false,
+             type: "POST",
+             url:{% url 'edit_favorites' %},
+             data: {
+                    'video': $('#test').val() // from form
+                    },
+             async:true,
+            beforeSend:function(xhr, settings){
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+            },
+            success: function(data){
+                 console.log(data.length);
+                 var domlist = $('.img1')
+                console.log(domlist.length)
+
+                  for (var i=0;i<data.length;i++){
+                    console.log(data[i]);
+                    $('#wrap li img').eq(i).attr('src',data[i])
+                 }
+            }
+        });
+        return false; //<---- move it here
+   });
+
+});
+</script>
+
+
+
+<script type="text/javascript">
+	var box = document.getElementById('wrap');
+	var lis = Array.from(box.children);
+	var pos = [];
+	var nearPos = [];
+
+	
+	lis.forEach(function(item) {
+		pos.push({left:item.offsetLeft,top:item.offsetTop});
+		item.style.left = item.offsetLeft + 'px';
+	    item.style.top = item.offsetTop + 'px'; 
+	});
+	
+	lis.forEach(function(item) {
+	   item.style.margin = 0;
+	   item.style.position = 'absolute';
+	   item.style.zIndex = 1;
+	});
+	
+	lis.forEach(function (item,i) {
+	    item.onmousedown = function (ev) {
+	    	var min = 9999;
+	    	var near = -1;
+	    	var arr = new Array(lis.length);
+	    	item.style.zIndex = 99;
+	        var disX = ev.pageX - item.offsetLeft;
+	        var disY = ev.pageY - item.offsetTop;
+	        document.onmousemove = function (ev) {
+	        	item.style.top = ev.pageY - disY + 'px';
+	        	item.style.left = ev.pageX - disX + 'px';
+	            near = fnNear(item);
+	            lis.forEach(function(item) {
+            	    item.className = '';
+            	})
+	            if(near >= 0){
+	            	lis[near].className = 'active';
+	            }
+	            
+	        }
+	        document.onmouseup = function() {
+	        	if(near >= 0){
+	        		lis[near].className = '';
+	        		[pos[i],pos[near]] = [pos[near],pos[i]];
+	        		startMove(lis[i],{left:pos[i].left,top:pos[i].top},function() {
+	        		    item.style.zIndex = 1;
+	        		});
+	        		startMove(lis[near],{left:pos[near].left,top:pos[near].top});
+	        	}else{
+	        		startMove(lis[i],{left:pos[i].left,top:pos[i].top},function() {
+	        		    item.style.zIndex = 1;
+	        		});
+	        	}
+	            
+	            document.onmousemove = document.onmouseup = null;
+	        }
+	        return false;
+	    }
+	})
+	
+	
+	function fnNear (obj) { //查找 最近的
+		var min = 999999;
+		var p = -1;
+		lis.forEach(function(item,i) {
+		    if(fnKnock(item,obj) && item != obj){
+				var x = pos[i].left - obj.offsetLeft;
+				var y = pos[i].top - obj.offsetTop;
+				var r =  Math.sqrt(x*x + y*y);
+				if(min > r){
+					min = r;
+					p = i;
+				}
+			}
+		})
+		return p;	
+	}
+
+	function fnKnock (obj1,obj2) { //碰撞检测
+	    var l1 = obj1.offsetLeft;
+	    var t1 = obj1.offsetTop;
+	    var r1 = obj1.offsetLeft + obj1.offsetWidth;
+	    var b1 = obj1.offsetTop + obj1.offsetHeight;
+	    
+	    var l2 = obj2.offsetLeft;
+	    var t2 = obj2.offsetTop;
+	    var r2 = obj2.offsetLeft + obj2.offsetWidth;
+	    var b2 = obj2.offsetTop + obj2.offsetHeight;
+	    
+	    if(l1 > r2 || t1 > b2 || r1 < l2 || b1 < t2){
+	    	return false;
+	    }else{
+	    	return true;
+	    }
+	}
+</script>
